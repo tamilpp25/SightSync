@@ -1,0 +1,8 @@
+quart
+loguru
+openai
+transformers
+torch
+torchvision
+dotenv
+requests
