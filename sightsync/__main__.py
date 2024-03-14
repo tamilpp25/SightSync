@@ -1,50 +1,77 @@
+from io import BytesIO
 from quart import Quart, request
-import requests
+import traceback
 
-from PIL import Image
-from transformers import BlipProcessor, BlipForConditionalGeneration, BlipForQuestionAnswering
+from time import time
+from loguru import logger
 
-caption_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-large", cache_dir="./models")
-caption_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large", cache_dir="./models").to("cuda")
-
-vqa_processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base", cache_dir="./models")
-vqa_model = BlipForQuestionAnswering.from_pretrained("Salesforce/blip-vqa-base", cache_dir="./models").to("cuda")
+import base64
+from utils.functions import Models
 
 app = Quart(__name__)
+base = time()
 
 @app.post("/describe")
 async def describe():
-    data = await request.get_json()
+    try:
+        
+        data = await request.get_json()
+        output = await Models.describe(data['img_url'])
 
-    raw_image = Image.open(requests.get(data['img_url'], stream=True).raw).convert('RGB')
-
-    inputs = caption_processor(raw_image, return_tensors="pt").to("cuda")
-
-    out = caption_model.generate(**inputs)
-    print(caption_processor.decode(out[0], skip_special_tokens=True))
-
-    return {
-        'code': 0,
-        'data': caption_processor.decode(out[0], skip_special_tokens=True)
-    }
+        return {
+            'code': 0,
+            'data': output
+        }
+    
+    except Exception as E:
+        traceback.print_exc()
+        return {
+            'code': -1,
+            'err': E
+        }
 
 
 @app.post("/qa")
 async def qa():
-    data = await request.get_json()
+    try:
 
-    raw_image = Image.open(requests.get(data['img_url'], stream=True).raw).convert('RGB')
+        data = await request.get_json()
+        output = await Models.question(data['img_url'], [data['q']])
 
-    inputs = vqa_processor(raw_image, data['q'], return_tensors="pt").to("cuda")
+        return {
+            'code': 0,
+            'data': output
+        }
+    
+    except Exception as E:
+        traceback.print_exc()
+        return {
+            'code': -1,
+            'err': E
+        }
 
-    out = vqa_model.generate(**inputs)
-    print(vqa_processor.decode(out[0], skip_special_tokens=True))
 
-    return {
-        'code': 0,
-        'data': vqa_processor.decode(out[0], skip_special_tokens=True)
-    }
+@app.post("/summary")
+async def summary():
+    try:
+
+        data = await request.get_json()
+        output = await Models.compute_summary(data['img_url'])
+
+        return {
+            'code': 0,
+            'data': output
+        }
+    
+    except Exception as E:
+        traceback.print_exc()
+        return {
+            'code': -1,
+            'err': E
+        }
+
 
 
 if __name__ == "__main__":
+    logger.debug(f'Backend running on http://127.0.0.1:5000')
     app.run(port=5000)
