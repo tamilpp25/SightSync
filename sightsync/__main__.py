@@ -89,5 +89,5 @@ async def index():
 
 
 if __name__ == "__main__":
-    logger.debug(f'Backend running on http://0.0.0.0:5000')
+    logger.debug(f'Backend backend server to 0.0.0.0:5000')
     app.run(host='0.0.0.0', port=5000)
