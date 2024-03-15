@@ -1,10 +1,13 @@
+import base64
+import io
+import numpy as np
 from openai import OpenAI
+
+import cv2
 
 from PIL import Image
 import requests
-
 from loguru import logger
-
 from dotenv import load_dotenv
 import json
 from transformers import BlipProcessor, BlipForConditionalGeneration, BlipForQuestionAnswering
@@ -12,6 +15,7 @@ from transformers import BlipProcessor, BlipForConditionalGeneration, BlipForQue
 from time import time
 base = time()
 
+p = pyaudio.PyAudio()
 cache_dir = "./models"
 
 load_dotenv()
@@ -48,22 +52,33 @@ class Models:
             ],
             stream=False
         )
+        
         # logger.debug(stream.choices[0].message.content)
         return json.loads(stream.choices[0].message.content)['questions']
     
     @staticmethod
-    async def describe(img_url: str):
+    async def describe(img: str):
 
-        raw_image = Image.open(requests.get(img_url, stream=True).raw).convert('RGB')
+        raw_image = Image.open(requests.get(img, stream=True).raw).convert('RGB')
         inputs = caption_processor(raw_image, return_tensors="pt").to("cuda")
         out = caption_model.generate(**inputs)
 
         return caption_processor.decode(out[0], skip_special_tokens=True)
     
     @staticmethod
-    async def question(img_url: str, questions: list[str]):
+    async def describe(img: bytes):
 
-        raw_image = Image.open(requests.get(img_url, stream=True).raw).convert('RGB')
+        raw_image = Image.open(io.BytesIO(img)).convert('RGB')
+        inputs = caption_processor(raw_image, return_tensors="pt").to("cuda")
+        out = caption_model.generate(**inputs)
+
+        return caption_processor.decode(out[0], skip_special_tokens=True)
+    
+    
+    @staticmethod
+    async def question(img: str, questions: list[str]):
+
+        raw_image = Image.open(requests.get(img, stream=True).raw).convert('RGB')
         # raw_image = Image.open(BytesIO(base64.b64decode(data['img_raw']))).convert('RGB')
 
         output = {}
@@ -74,11 +89,28 @@ class Models:
 
 
         return output
+   
+    @staticmethod
+    async def question(img: bytes, questions: list[str]):
+
+        raw_image = Image.open(io.BytesIO(img)).convert('RGB')
+
+        output = {}
+        for i in questions:
+            inputs = vqa_processor(raw_image, i, return_tensors="pt").to("cuda")
+            out = vqa_model.generate(**inputs)
+            output[i] = vqa_processor.decode(out[0], skip_special_tokens=True)
+
+
+        return output
+    
     
     @staticmethod
     async def generate_result(qa: dict[str, str]):
 
         qa_joint = ','.join([f"{x}:{y}" for x,y in qa.items()])
+
+        # logger.debug(qa_joint)
 
         stream = client.chat.completions.create(
             model='gpt-3.5-turbo',
@@ -94,19 +126,35 @@ class Models:
         )
         return stream.choices[0].message.content
     
+
     @staticmethod
-    async def compute_summary(img_url: str):
-        context = await Models.describe(img_url)
+    async def compute_summary(img: str):
+        context = await Models.describe(img)
         logger.info('Generated context!')
         questions = await Models.generate_questions(context)
         logger.info('Generated questions!')
-        qa = await Models.question(img_url, questions)
+        qa = await Models.question(img, questions)
         logger.info('Generated qa!')
         result = await Models.generate_result(qa)
         logger.info('Generated result!')
         logger.debug('---------------------------------------------------')
         logger.info(f'Output: {result}')
         return result
-
-        
-
+    
+    @staticmethod
+    async def compute_summary(img: bytes):
+        # print(base64.b64decode(img).decode())
+        # jpg_as_np = np.frombuffer(img, dtype=np.uint8)
+        # img = cv2.imdecode(jpg_as_np, flags=1)
+        # cv2.imshow('frame', img)
+        logger.debug('---------------------------------------------------')
+        context = await Models.describe(img)
+        logger.info(f'Generated context: {context}')
+        questions = await Models.generate_questions(context)
+        logger.info(f'Generated questions: {questions}')
+        qa = await Models.question(img, questions)
+        logger.info(f'Generated qa: {qa}')
+        result = await Models.generate_result(qa)
+        logger.info(f'Generated result: {result}')
+        logger.debug('---------------------------------------------------')
+        return result
