@@ -35,13 +35,24 @@ async def describe():
 async def qa():
     try:
 
-        data = await request.get_json()
-        output = await Models.question(data['img_url'], [data['q']])
+        if 'format' in request.args and request.args.get('format') == 'bin':
 
-        return {
-            'code': 0,
-            'data': output
-        }
+            data = await request.data
+            output = await Models.question(data, [request.args.get('q')])
+
+            return {
+                'code': 0,
+                'data': output
+            }
+        
+        else:
+            data = await request.get_json()
+            output = await Models.question_link(data['img_url'], [data['q']])
+
+            return {
+                'code': 0,
+                'data': output
+            }
     
     except Exception as E:
         traceback.print_exc()

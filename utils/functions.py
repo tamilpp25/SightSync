@@ -76,9 +76,9 @@ class Models:
     
     
     @staticmethod
-    async def question(img: str, questions: list[str]):
+    async def question_link(img_url: str, questions: list[str]):
 
-        raw_image = Image.open(requests.get(img, stream=True).raw).convert('RGB')
+        raw_image = Image.open(requests.get(img_url, stream=True).raw).convert('RGB')
         # raw_image = Image.open(BytesIO(base64.b64decode(data['img_raw']))).convert('RGB')
 
         output = {}
