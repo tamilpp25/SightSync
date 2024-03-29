@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live GPS Coordinates</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    <style>
+        #map { 
+            height: 400px;width: 90%;
+            margin-left: 3.5%;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            border: 5px solid aqua;
+            padding: 1%;
+        }
+        .location-header{
+            font-size: 30px;
+            text-align: center;
+            color: white;
+        }
+        body{
+            background: rgb(15,7,54);
+            background: linear-gradient(90deg, rgba(15,7,54,1) 29%, rgba(12,16,100,1) 88%, rgba(11,25,122,1) 100%);
+        }
+    </style>
+</head>
+<body>
+    <p style="color: white; font-size:50px; text-align:center">Sight Sync</p>
+    <p style="color: white;width:70%;text-align:center;margin-left:15%;font-size:24px;margin-top:30px; margin-bottom: 90px;">Our groundbreaking project, the "Smart Vision Helmet," is a pioneering assistive technology solution aimed at revolutionizing the lives of visually impaired individuals. By harnessing the power of cutting-edge technology, including real-time object detection, speech-to-text conversion, and text-to-speech responses, our helmet empowers users with unparalleled independence and safety. With its user-friendly interface and seamless integration of components, our helmet provides audible descriptions of the user's surroundings and enables effortless interaction through voice commands. Designed with accessibility and usability in mind, our technology promises to enhance autonomy and enrich the quality of life for visually impaired individuals, unlocking a world of possibilities and opportunities for greater independence and empowerment.</p>
+    <!-- <p style="color: white;font-size:20px; text-align:center">Logged in as {{ guardianName }}</p> -->
+    <p class="location-header">User's Live Location</p>
+
+    <div style="border: 3px solid aqua; width:60%;margin-left:19%; border-radius:5%">
+    <div id="map"></div>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([0, 0], 16); 
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        function updateMap(latitude, longitude) {
+            console.log('Updating map to:', latitude, longitude);
+            map.setView([latitude, longitude], 16); 
+            L.marker([latitude, longitude]).addTo(map)
+                .openPopup();
+        }
+
+        function fetchCoordinates() {
+            fetch('/gps_coordinates') 
+                .then(response => response.json())
+                .then(data => {
+                    updateMap(data.latitude, data.longitude); 
+                })
+                .catch(error => {
+                    console.error('Error fetching coordinates:', error);
+                });
+        }
+
+        setInterval(fetchCoordinates, 1000); 
+    </script>
+</body>
+</html>

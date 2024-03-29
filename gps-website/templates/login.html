@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="static\login.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Madimi+One&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <script
+      src="https://kit.fontawesome.com/da6a27bd32.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <div class="stu-div" style="padding-top: 100px;height:380px;">
+      <!-- <img src="static\logo.png" alt="" /> -->
+      <h2>Sight Sync</h2>
+      
+
+      <form method="POST" class="stu-login-form">
+        <div class="stuNameDiv">
+          {{ form.hidden_tag() }}
+          <!-- {{ form.email.label(class_="stu-email-label")
+          }} -->
+          <div class="stuNameSpan" >
+            <span class="fa-regular fa-envelope" id="email"></span>{{
+            form.email(class_="stu-email") }}
+            <label for="" class="placeholder-name">Enter your email</label>
+          </div>
+        </div>
+        <div class="stuPassDiv">
+          <!-- {{ form.password.label(class_="stu-pass-label") }} -->
+          <div class="stuPassSpan">
+            <span class="fa-solid fa-lock" id="icon"></span> {{ form.password
+            (class_="stu-pass") }}
+            <label for="" class="placeholder-pass">Password</label>
+          </div>
+        </div>
+        {{ form.submit(class_="loginBtn") }}
+      </form>
+      <div class="sign_up">
+        <p>Don't have an account?</p>
+        <a href="/signup">Signup</a>
+      </div>
+    </div>
+    <script src="static\loginScript.js"></script>
+  </body>
+</html>
