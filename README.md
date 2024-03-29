@@ -12,6 +12,11 @@ The device converts visual information into audible descriptions, offering users
 SightSync utilizes sophisticated tools like OpenCV and Large Language Models to ensure accurate and comprehensive descriptions of the surroundings.
 ## Enhanced Independence: 
 By offering audible descriptions of the environment, SightSync empowers visually impaired individuals to navigate independently and with confidence.
+## Hardware Components
+1. Raspberry Pi 4
+2. Neo-6M GPS Module
+3. MPU6050 - 6 axis IMU
+4. Logitech C270 Webcam
 
 # Getting Started:
 To get started with SightSync, follow these steps:
